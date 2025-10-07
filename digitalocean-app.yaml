@@ -1,0 +1,16 @@
+name: trading-recommendations
+region: nyc
+services:
+  - name: web
+    github:
+      repo: mahersss024-oss/trading-recommendations
+      branch: main
+      deploy_on_push: true
+    build_command: pip install -r requirements.txt
+    run_command: gunicorn --bind :$PORT app:app
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 5000
+    health_check:
+      http_path: /health
