@@ -1,0 +1,9 @@
+# Railway Configuration
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "streamlit run app_enhanced.py --server.port=$PORT --server.address=0.0.0.0"
+
+[env]
+NIXPACKS_PYTHON_VERSION = "3.9"
