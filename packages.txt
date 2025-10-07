@@ -1,11 +1,6 @@
-libgl1-mesa-glxlibgl1-mesa-glx
-
-libglib2.0-0libglib2.0-0
-
-libsm6libsm6
-
-libxext6libxext6
-
-libxrender-devlibxrender-dev
-
+libgl1-mesa-glx
+libglib2.0-0
+libsm6
+libxext6
+libxrender-dev
 libgomp1libgomp1
