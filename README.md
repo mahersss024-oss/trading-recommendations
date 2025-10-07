@@ -1,0 +1,2 @@
+# trading-recommendations
+trading
