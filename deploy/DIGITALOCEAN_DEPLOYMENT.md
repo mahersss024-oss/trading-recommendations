@@ -11,7 +11,7 @@
 1. Login to DigitalOcean
 2. Go to App Platform
 3. Click "Create App"
-4. Select GitHub repository: `mahersss024-oss/trading-recommendations`
+4. Select GitHub repository: `<your-github-username>/<your-repository-name>`  <!-- Replace with your actual repository -->
 5. Select branch: `main`
 6. Configure the app:
    - **Name**: trading-recommendations
