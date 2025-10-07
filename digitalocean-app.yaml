@@ -3,7 +3,7 @@ region: nyc
 services:
   - name: web
     github:
-      repo: mahersss024-oss/trading-recommendations
+      repo: <your-github-username>/<your-repo-name>  # TODO: Replace with your actual GitHub repo
       branch: main
       deploy_on_push: true
     build_command: pip install -r requirements.txt
