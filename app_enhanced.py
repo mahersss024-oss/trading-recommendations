@@ -1626,7 +1626,15 @@ def main_page():
         
         # المدير الرئيسي له كل الصلاحيات أو المشرف لديه الصلاحيات المحددة
         is_super_admin = not user.get('admin_role') or user['admin_role'] == 'none' or user['admin_role'] is None
-        admin_permissions = user.get('admin_permissions', '').split(',') if user.get('admin_permissions') else []
+        
+        # معالجة admin_permissions بشكل آمن
+        permissions = user.get('admin_permissions', '')
+        if isinstance(permissions, list):
+            admin_permissions = permissions
+        elif isinstance(permissions, str):
+            admin_permissions = permissions.split(',') if permissions else []
+        else:
+            admin_permissions = []
         
         if is_super_admin or "manage_reports" in admin_permissions:
             tab_titles.append("📁 إدارة التقارير")
