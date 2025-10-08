@@ -63,6 +63,11 @@ WHATSAPP_NUMBER = "0549764152"
 WHATSAPP_LINK = "https://wa.me/966549764152"
 SUPPORT_EMAIL = "maherss024@hotmail.com"
 
+# Invite Code Constants
+INVITE_CODE_LENGTH = 8
+INVITE_CODE_EXPIRY_DAYS = 7
+DEFAULT_SUBSCRIPTION_DURATION_DAYS = 30
+
 # استيراد التحسينات
 try:
     from enhancements import track_login_attempts, enhanced_password_validation
@@ -453,6 +458,27 @@ def init_database():
         )
     ''')
     
+    # جدول رموز الدعوة
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS invite_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT UNIQUE NOT NULL,
+            created_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP NOT NULL,
+            used_by INTEGER DEFAULT NULL,
+            used_at TIMESTAMP DEFAULT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            subscription_type TEXT DEFAULT 'free',
+            subscription_duration_days INTEGER DEFAULT 30,
+            max_uses INTEGER DEFAULT 1,
+            current_uses INTEGER DEFAULT 0,
+            description TEXT DEFAULT '',
+            FOREIGN KEY (created_by) REFERENCES users (id),
+            FOREIGN KEY (used_by) REFERENCES users (id)
+        )
+    ''')
+    
     # إنشاء مستخدم مدير افتراضي
     admin_password = hashlib.sha256("admin123".encode()).hexdigest()
     try:
@@ -620,6 +646,201 @@ def is_subscription_valid(user: Dict) -> bool:
         return datetime.date.today() <= end_date
 
     return False
+
+# ================= دوال إدارة رموز الدعوة =================
+
+# دالة توليد رمز دعوة جديد
+def generate_invite_code(created_by: int, subscription_type: str = 'free', 
+                         duration_days: int = DEFAULT_SUBSCRIPTION_DURATION_DAYS, 
+                         max_uses: int = 1, description: str = '') -> Tuple[bool, str]:
+    """إنشاء رمز دعوة جديد"""
+    try:
+        import random
+        import string
+        from datetime import datetime, timedelta
+        
+        # توليد رمز عشوائي
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=INVITE_CODE_LENGTH))
+        
+        # تاريخ انتهاء الصلاحية
+        expires_at = (datetime.now() + timedelta(days=INVITE_CODE_EXPIRY_DAYS)).strftime('%Y-%m-%d %H:%M:%S')
+        
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        
+        # التأكد من أن الرمز فريد
+        while True:
+            cursor.execute("SELECT id FROM invite_codes WHERE code = ?", (code,))
+            if not cursor.fetchone():
+                break
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=INVITE_CODE_LENGTH))
+        
+        # حفظ الرمز في قاعدة البيانات
+        cursor.execute('''
+            INSERT INTO invite_codes (code, created_by, expires_at, subscription_type, 
+                                     subscription_duration_days, max_uses, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (code, created_by, expires_at, subscription_type, duration_days, max_uses, description))
+        
+        conn.commit()
+        conn.close()
+        
+        return True, code
+        
+    except Exception as e:
+        return False, f"خطأ في إنشاء رمز الدعوة: {str(e)}"
+
+# دالة التحقق من صحة رمز الدعوة
+def validate_invite_code(code: str) -> Tuple[bool, str, Dict]:
+    """التحقق من صحة رمز الدعوة"""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, created_by, expires_at, subscription_type, subscription_duration_days,
+                   max_uses, current_uses, is_active, description
+            FROM invite_codes 
+            WHERE code = ?
+        ''', (code,))
+        
+        invite_data = cursor.fetchone()
+        conn.close()
+        
+        if not invite_data:
+            return False, "رمز الدعوة غير صحيح", {}
+        
+        # التحقق من الحالة النشطة
+        if not invite_data[7]:  # is_active
+            return False, "رمز الدعوة غير نشط", {}
+        
+        # التحقق من تاريخ انتهاء الصلاحية
+        expires_at = datetime.datetime.strptime(invite_data[2], '%Y-%m-%d %H:%M:%S')
+        if datetime.datetime.now() > expires_at:
+            return False, "انتهت صلاحية رمز الدعوة", {}
+        
+        # التحقق من عدد مرات الاستخدام
+        if invite_data[6] >= invite_data[5]:  # current_uses >= max_uses
+            return False, "تم استنفاد عدد مرات استخدام رمز الدعوة", {}
+        
+        # إرجاع بيانات الرمز
+        invite_info = {
+            'id': invite_data[0],
+            'created_by': invite_data[1],
+            'expires_at': invite_data[2],
+            'subscription_type': invite_data[3],
+            'subscription_duration_days': invite_data[4],
+            'max_uses': invite_data[5],
+            'current_uses': invite_data[6],
+            'description': invite_data[8]
+        }
+        
+        return True, "رمز الدعوة صحيح", invite_info
+        
+    except Exception as e:
+        return False, f"خطأ في التحقق من رمز الدعوة: {str(e)}", {}
+
+# دالة استخدام رمز الدعوة
+def use_invite_code(code: str, user_id: int) -> Tuple[bool, str]:
+    """استخدام رمز الدعوة عند التسجيل"""
+    try:
+        # التحقق من صحة الرمز أولاً
+        is_valid, message, invite_info = validate_invite_code(code)
+        if not is_valid:
+            return False, message
+        
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        
+        # تحديث معلومات الاستخدام
+        cursor.execute('''
+            UPDATE invite_codes 
+            SET current_uses = current_uses + 1, used_by = ?, used_at = CURRENT_TIMESTAMP
+            WHERE code = ?
+        ''', (user_id, code))
+        
+        # تحديث اشتراك المستخدم إذا كان الرمز يتضمن اشتراك مميز
+        if invite_info['subscription_type'] != 'free':
+            from datetime import datetime, timedelta
+            end_date = (datetime.now() + timedelta(days=invite_info['subscription_duration_days'])).strftime('%Y-%m-%d')
+            
+            cursor.execute('''
+                UPDATE users 
+                SET subscription_type = ?, subscription_end = ?
+                WHERE id = ?
+            ''', (invite_info['subscription_type'], end_date, user_id))
+        
+        conn.commit()
+        conn.close()
+        
+        return True, "تم استخدام رمز الدعوة بنجاح"
+        
+    except Exception as e:
+        return False, f"خطأ في استخدام رمز الدعوة: {str(e)}"
+
+# دالة جلب جميع رموز الدعوة للمدير
+def get_invite_codes() -> List[Dict]:
+    """جلب جميع رموز الدعوة"""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT ic.id, ic.code, ic.created_by, u.username as created_by_name,
+                   ic.created_at, ic.expires_at, ic.subscription_type, 
+                   ic.subscription_duration_days, ic.max_uses, ic.current_uses,
+                   ic.is_active, ic.description
+            FROM invite_codes ic
+            LEFT JOIN users u ON ic.created_by = u.id
+            ORDER BY ic.created_at DESC
+        ''')
+        
+        codes = []
+        for row in cursor.fetchall():
+            codes.append({
+                'id': row[0],
+                'code': row[1],
+                'created_by': row[2],
+                'created_by_name': row[3] or 'مستخدم محذوف',
+                'created_at': row[4],
+                'expires_at': row[5],
+                'subscription_type': row[6],
+                'subscription_duration_days': row[7],
+                'max_uses': row[8],
+                'current_uses': row[9],
+                'is_active': row[10],
+                'description': row[11] or ''
+            })
+        
+        conn.close()
+        return codes
+        
+    except Exception as e:
+        st.error(f"خطأ في جلب رموز الدعوة: {str(e)}")
+        return []
+
+# دالة إلغاء تفعيل رمز الدعوة
+def deactivate_invite_code(code_id: int) -> Tuple[bool, str]:
+    """إلغاء تفعيل رمز دعوة"""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE invite_codes 
+            SET is_active = FALSE 
+            WHERE id = ?
+        ''', (code_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return True, "تم إلغاء تفعيل رمز الدعوة بنجاح"
+        
+    except Exception as e:
+        return False, f"خطأ في إلغاء تفعيل رمز الدعوة: {str(e)}"
+
+# ================= نهاية دوال رموز الدعوة =================
 
 # دالة تحليل ملف التوصيات
 def parse_recommendations_file(content: str) -> Dict:
@@ -1098,23 +1319,31 @@ def login_page():
                 new_username = st.text_input("اسم المستخدم الجديد", placeholder="اختر اسم مستخدم")
                 new_email = st.text_input("البريد الإلكتروني", placeholder="أدخل بريدك الإلكتروني")
                 new_phone = st.text_input("رقم الجوال", placeholder="مثال: 05XXXXXXXX")
+                invite_code = st.text_input("رمز الدعوة (من الإدارة)", placeholder="أدخل الرمز المؤقت المرسل لك")
                 new_password = st.text_input("كلمة المرور", type="password", placeholder="اختر كلمة مرور قوية")
                 confirm_password = st.text_input("تأكيد كلمة المرور", type="password", placeholder="أعد إدخال كلمة المرور")
                 submitted = st.form_submit_button("إنشاء حساب", use_container_width=True)
                 if submitted:
-                    if new_username and new_email and new_phone and new_password and confirm_password:
+                    if new_username and new_email and new_phone and invite_code and new_password and confirm_password:
                         st.session_state.register_phone = new_phone
                         if new_password != confirm_password:
                             st.error("❌ كلمة المرور غير متطابقة")
                         else:
-                            success, message = register_user(new_username, new_email, new_password)
-                            if success:
-                                st.success(f"✅ {message}")
-                                st.info("يمكنك الآن تسجيل الدخول باستخدام بياناتك الجديدة")
+                            # تحقق من صحة رمز الدعوة
+                            is_valid, code_msg = validate_invite_code(invite_code)
+                            if not is_valid:
+                                st.error(f"❌ رمز الدعوة غير صالح أو منتهي الصلاحية: {code_msg}")
                             else:
-                                st.error(f"❌ {message}")
+                                success, message = register_user(new_username, new_email, new_password)
+                                if success:
+                                    # عند نجاح التسجيل، يتم استهلاك الرمز
+                                    use_invite_code(invite_code)
+                                    st.success(f"✅ {message}")
+                                    st.info("يمكنك الآن تسجيل الدخول باستخدام بياناتك الجديدة")
+                                else:
+                                    st.error(f"❌ {message}")
                     else:
-                        st.warning("⚠️ يرجى ملء جميع الحقول")
+                        st.warning("⚠️ يرجى ملء جميع الحقول (بما في ذلك رمز الدعوة)")
         with tab3:
             with st.form("reset_password_form"):
                 st.markdown("<h3 style='font-size:1.6rem; text-align:center; color:#0f2350; font-weight:800; margin-bottom:20px; text-shadow: 0 1px 1px rgba(0,0,0,0.1);'>استعادة كلمة المرور</h3>", unsafe_allow_html=True)
@@ -1360,6 +1589,9 @@ def main_page():
             
         if is_super_admin or "users" in user.get('admin_permissions', []):
             tab_titles.append("👥 إدارة المستخدمين")
+        
+        if is_super_admin:
+            tab_titles.append("🎫 رموز الدعوة")
             
         tab_titles.append("⚙️ الإعدادات")
         
