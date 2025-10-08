@@ -58,6 +58,11 @@ UPDATE_USERNAME_SQL = "UPDATE users SET username = ? WHERE id = ?"
 # Styling Constants
 BORDER_STYLE = '1px solid #e5e7eb'
 
+# Contact Information Constants
+WHATSAPP_NUMBER = "0549764152"
+WHATSAPP_LINK = "https://wa.me/966549764152"
+SUPPORT_EMAIL = "maherss024@hotmail.com"
+
 # استيراد التحسينات
 try:
     from enhancements import track_login_attempts, enhanced_password_validation
@@ -1218,7 +1223,9 @@ def login_page():
                 - استمرار استخدام الموقع بعد التعديل يُعتبر موافقة على السياسة الجديدة.
                 </li>
                 <li><strong>التواصل معنا</strong><br>
-                - لأي استفسارات بخصوص سياسة الخصوصية، يمكن التواصل عبر البريد الإلكتروني: <a href='mailto:maherss024@hotmail.com'>maherss024@hotmail.com</a>.
+                - لأي استفسارات بخصوص سياسة الخصوصية، يمكن التواصل معنا:<br>
+                &nbsp;&nbsp;📧 <strong>البريد الإلكتروني:</strong> <a href='mailto:{SUPPORT_EMAIL}'>{SUPPORT_EMAIL}</a><br>
+                &nbsp;&nbsp;📱 <strong>واتساب (الدعم السريع):</strong> <a href='{WHATSAPP_LINK}'>{WHATSAPP_NUMBER}</a>
                 </li>
             </ol>
             </div>
@@ -1278,6 +1285,25 @@ def main_page():
         
         st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         
+        # قسم الدعم والتواصل
+        st.markdown("### 📞 الدعم والمساعدة")
+        st.markdown(f"""
+        <div style="background: white; border-radius: 10px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); margin-bottom: 15px;">
+            <div style="color: #334155; font-size: 0.9rem; line-height: 1.5;">
+                <strong>🆘 تحتاج مساعدة؟</strong><br>
+                تواصل معنا للحصول على الدعم الفني
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="{WHATSAPP_LINK}" target="_blank" style="display: inline-block; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-right: 5px;">
+                    📱 واتساب
+                </a>
+                <a href="mailto:{SUPPORT_EMAIL}" style="display: inline-block; background: #0ea5e9; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    📧 إيميل
+                </a>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
         # زر تسجيل الخروج محسن
         with st.container():
             _, col2, _ = st.columns([1, 10, 1])
@@ -1308,6 +1334,17 @@ def main_page():
         st.error("⚠️ انتهت صلاحية اشتراكك. يرجى تجديد الاشتراك للوصول إلى التوصيات.")
         with st.expander("📞 تواصل معنا لتجديد الاشتراك"):
             st.info("يرجى التواصل مع الإدارة لتجديد اشتراكك والاستمرار في الحصول على التوصيات.")
+            
+            # معلومات التواصل
+            st.markdown(f"""
+            **طرق التواصل:**
+            
+            📱 **واتساب (الدعم السريع):** 
+            [{WHATSAPP_NUMBER}]({WHATSAPP_LINK})
+            
+            📧 **البريد الإلكتروني:** 
+            [{SUPPORT_EMAIL}](mailto:{SUPPORT_EMAIL})
+            """)
         return
     
     # تبويبات التطبيق
