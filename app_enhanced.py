@@ -1545,21 +1545,42 @@ def display_recommendations_tab():
                     if isinstance(trade[1], str) and trade[1].startswith('{'):
                         try:
                             trade_data = json.loads(trade[1])
-                            # استخراج البيانات من كائن JSON
+                            # استخراج البيانات من كائن JSON مع حماية من القيم الفارغة
                             trade_dict['الرمز'] = trade_data.get('symbol', '')
-                            price = trade_data.get('price', 0)
+                            
+                            # تحويل القيم مع الحماية من None
+                            price_value = trade_data.get('price', 0)
+                            price = float(price_value) if price_value is not None else 0
+                            
                             recommendation = trade_data.get('recommendation', '')
-                            confidence = trade_data.get('confidence', 0)
-                            position_size = trade_data.get('position_size', 0)
-                            position_value = trade_data.get('position_value', 0)
-                            stop_loss = trade_data.get('stop_loss', 0)
-                            target = trade_data.get('target_profit', 0)
-                            risk_reward = trade_data.get('risk_reward_ratio', 0)
-                            rsi = trade_data.get('rsi', 0)
-                            macd = trade_data.get('macd', 0)
+                            
+                            confidence_value = trade_data.get('confidence', 0)
+                            confidence = float(confidence_value) if confidence_value is not None else 0
+                            
+                            position_size_value = trade_data.get('position_size', 0)
+                            position_size = int(position_size_value) if position_size_value is not None else 0
+                            
+                            position_value_val = trade_data.get('position_value', 0)
+                            position_value = float(position_value_val) if position_value_val is not None else 0
+                            
+                            stop_loss_value = trade_data.get('stop_loss', 0)
+                            stop_loss = float(stop_loss_value) if stop_loss_value is not None else 0
+                            
+                            target_value = trade_data.get('target_profit', 0)
+                            target = float(target_value) if target_value is not None else 0
+                            
+                            risk_reward_value = trade_data.get('risk_reward_ratio', 0)
+                            risk_reward = float(risk_reward_value) if risk_reward_value is not None else 0
+                            
+                            rsi_value = trade_data.get('rsi', 0)
+                            rsi = float(rsi_value) if rsi_value is not None else 0
+                            
+                            macd_value = trade_data.get('macd', 0)
+                            macd = float(macd_value) if macd_value is not None else 0
+                            
                             trend = trade_data.get('trend', '')
-                        except (json.JSONDecodeError, IndexError):
-                            # إذا فشل تحليل JSON، جرب الطريقة الثانية
+                        except (json.JSONDecodeError, IndexError, TypeError):
+                            # إذا فشل تحليل JSON أو تحويل البيانات، تخطي هذا السجل
                             continue
                     
                     # الحالة الثانية: البيانات مخزنة مباشرة في العمود
@@ -1567,41 +1588,55 @@ def display_recommendations_tab():
                         try:
                             # قراءة البيانات مباشرة من السجل
                             trade_dict['الرمز'] = trade[2] if len(trade) > 2 else ''
-                            price = float(trade[3]) if len(trade) > 3 else 0
+                            price = float(trade[3]) if len(trade) > 3 and trade[3] is not None else 0
                             recommendation = trade[4] if len(trade) > 4 else ''
-                            confidence = float(trade[5]) if len(trade) > 5 else 0
-                            position_size = int(trade[6]) if len(trade) > 6 else 0
-                            position_value = float(trade[7]) if len(trade) > 7 else 0
-                            stop_loss = float(trade[8]) if len(trade) > 8 else 0
-                            target = float(trade[9]) if len(trade) > 9 else 0
-                            risk_reward = float(trade[10]) if len(trade) > 10 else 0
-                            rsi = float(trade[11]) if len(trade) > 11 else 0
-                            macd = float(trade[12]) if len(trade) > 12 else 0
+                            confidence = float(trade[5]) if len(trade) > 5 and trade[5] is not None else 0
+                            position_size = int(trade[6]) if len(trade) > 6 and trade[6] is not None else 0
+                            position_value = float(trade[7]) if len(trade) > 7 and trade[7] is not None else 0
+                            stop_loss = float(trade[8]) if len(trade) > 8 and trade[8] is not None else 0
+                            target = float(trade[9]) if len(trade) > 9 and trade[9] is not None else 0
+                            risk_reward = float(trade[10]) if len(trade) > 10 and trade[10] is not None else 0
+                            rsi = float(trade[11]) if len(trade) > 11 and trade[11] is not None else 0
+                            macd = float(trade[12]) if len(trade) > 12 and trade[12] is not None else 0
                             trend = trade[13] if len(trade) > 13 else ''
-                        except (ValueError, IndexError):
+                        except (ValueError, IndexError, TypeError):
                             # إذا فشل تحليل البيانات، تخطى هذا السجل
                             continue
                     
-                    # تنسيق بيانات الجدول بشكل موحد
-                    trade_dict['السعر'] = f"${price:.2f}" if price else "-"
-                    
-                    # تنسيق التوصية مع إضافة ألوان وأيقونات
-                    if "شراء" in str(recommendation):
-                        trade_dict['التوصية'] = "🟢 شراء"
-                    elif "بيع" in str(recommendation):
-                        trade_dict['التوصية'] = "🔴 بيع"
-                    else:
-                        trade_dict['التوصية'] = recommendation
-                    
-                    trade_dict['الثقة %'] = f"{confidence:.1f}%" if confidence else "-"
-                    trade_dict['حجم المركز'] = f"{position_size}" if position_size else "-"
-                    trade_dict['قيمة المركز'] = f"${position_value:.2f}" if position_value else "-"
-                    trade_dict['وقف الخسارة'] = f"${stop_loss:.2f}" if stop_loss else "-"
-                    trade_dict['هدف الربح'] = f"${target:.2f}" if target else "-"
-                    trade_dict['نسبة ر/م'] = f"{risk_reward:.2f}" if risk_reward else "-"
-                    trade_dict['RSI'] = f"{rsi:.1f}" if rsi else "-"
-                    trade_dict['MACD'] = f"{macd:.2f}" if macd else "-"
-                    trade_dict['الاتجاه'] = trend if trend else "-"
+                    # تنسيق بيانات الجدول بشكل موحد مع حماية من القيم الفارغة
+                    try:
+                        trade_dict['السعر'] = f"${price:.2f}" if price and price > 0 else "-"
+                        
+                        # تنسيق التوصية مع إضافة ألوان وأيقونات
+                        if "شراء" in str(recommendation):
+                            trade_dict['التوصية'] = "🟢 شراء"
+                        elif "بيع" in str(recommendation):
+                            trade_dict['التوصية'] = "🔴 بيع"
+                        else:
+                            trade_dict['التوصية'] = str(recommendation) if recommendation else "-"
+                        
+                        trade_dict['الثقة %'] = f"{confidence:.1f}%" if confidence and confidence > 0 else "-"
+                        trade_dict['حجم المركز'] = f"{position_size}" if position_size and position_size > 0 else "-"
+                        trade_dict['قيمة المركز'] = f"${position_value:.2f}" if position_value and position_value > 0 else "-"
+                        trade_dict['وقف الخسارة'] = f"${stop_loss:.2f}" if stop_loss and stop_loss > 0 else "-"
+                        trade_dict['هدف الربح'] = f"${target:.2f}" if target and target > 0 else "-"
+                        trade_dict['نسبة ر/م'] = f"{risk_reward:.2f}" if risk_reward and risk_reward > 0 else "-"
+                        trade_dict['RSI'] = f"{rsi:.1f}" if rsi and rsi > 0 else "-"
+                        trade_dict['MACD'] = f"{macd:.2f}" if macd else "-"
+                        trade_dict['الاتجاه'] = str(trend) if trend else "-"
+                    except (ValueError, TypeError, AttributeError):
+                        # في حالة خطأ في التنسيق، استخدم قيم افتراضية
+                        trade_dict['السعر'] = "-"
+                        trade_dict['التوصية'] = "-"
+                        trade_dict['الثقة %'] = "-"
+                        trade_dict['حجم المركز'] = "-"
+                        trade_dict['قيمة المركز'] = "-"
+                        trade_dict['وقف الخسارة'] = "-"
+                        trade_dict['هدف الربح'] = "-"
+                        trade_dict['نسبة ر/م'] = "-"
+                        trade_dict['RSI'] = "-"
+                        trade_dict['MACD'] = "-"
+                        trade_dict['الاتجاه'] = "-"
                     
                     trades_data.append(trade_dict)
                 
