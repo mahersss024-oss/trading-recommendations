@@ -1330,14 +1330,24 @@ def login_page():
                             st.error("❌ كلمة المرور غير متطابقة")
                         else:
                             # تحقق من صحة رمز الدعوة
-                            is_valid, code_msg = validate_invite_code(invite_code)
+                            is_valid, code_msg, _ = validate_invite_code(invite_code)
                             if not is_valid:
                                 st.error(f"❌ رمز الدعوة غير صالح أو منتهي الصلاحية: {code_msg}")
                             else:
                                 success, message = register_user(new_username, new_email, new_password)
                                 if success:
-                                    # عند نجاح التسجيل، يتم استهلاك الرمز
-                                    use_invite_code(invite_code)
+                                    # الحصول على معرف المستخدم الجديد لاستهلاك الرمز
+                                    conn = sqlite3.connect(DB_NAME)
+                                    cursor = conn.cursor()
+                                    cursor.execute("SELECT id FROM users WHERE username = ?", (new_username,))
+                                    user_result = cursor.fetchone()
+                                    conn.close()
+                                    
+                                    if user_result:
+                                        user_id = user_result[0]
+                                        # عند نجاح التسجيل، يتم استهلاك الرمز
+                                        use_invite_code(invite_code, user_id)
+                                    
                                     st.success(f"✅ {message}")
                                     st.info("يمكنك الآن تسجيل الدخول باستخدام بياناتك الجديدة")
                                 else:
