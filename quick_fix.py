@@ -60,6 +60,18 @@ def diagnose_and_fix():
             trades_count = cursor.fetchone()[0]
             print(f"💹 عدد الصفقات: {trades_count}")
         
+        # فحص جدول رموز الدعوة
+        if 'invite_codes' in tables:
+            cursor.execute("SELECT COUNT(*) FROM invite_codes")
+            invite_codes_count = cursor.fetchone()[0]
+            print(f"🎫 عدد رموز الدعوة: {invite_codes_count}")
+            
+            # اختبار دالة get_invite_codes
+            test_invite_codes_function(cursor)
+        else:
+            print("⚠️ جدول رموز الدعوة غير موجود!")
+            create_invite_codes_table(cursor)
+        
         conn.commit()
         conn.close()
         
@@ -69,6 +81,60 @@ def diagnose_and_fix():
         print(f"❌ خطأ في فحص قاعدة البيانات: {e}")
         print("🔧 إعادة إنشاء قاعدة البيانات...")
         create_fresh_database(db_path)
+
+def test_invite_codes_function(cursor):
+    """اختبار دالة رموز الدعوة لتجنب أخطاء KeyError"""
+    print("🧪 اختبار دالة رموز الدعوة...")
+    
+    try:
+        cursor.execute('''
+            SELECT ic.id, ic.code, ic.created_by, u.username as created_by_name,
+                   ic.created_at, ic.expires_at, ic.subscription_type, 
+                   ic.max_uses, ic.current_uses,
+                   ic.is_active, ic.description
+            FROM invite_codes ic
+            LEFT JOIN users u ON ic.created_by = u.id
+            ORDER BY ic.created_at DESC
+            LIMIT 1
+        ''')
+        
+        row = cursor.fetchone()
+        if row:
+            # اختبار معالجة البيانات
+            is_active = bool(row[9])  # تحويل إلى boolean
+            status = 'نشط' if is_active else 'غير نشط'
+            
+            print("✅ دالة رموز الدعوة تعمل بشكل صحيح")
+            print(f"   - النوع: {type(is_active)}")
+            print(f"   - القيمة: {is_active}")
+            print(f"   - الحالة: {status}")
+        else:
+            print("📭 لا توجد رموز دعوة للاختبار")
+    
+    except Exception as e:
+        print(f"❌ خطأ في اختبار رموز الدعوة: {e}")
+
+def create_invite_codes_table(cursor):
+    """إنشاء جدول رموز الدعوة"""
+    try:
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS invite_codes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                code TEXT UNIQUE NOT NULL,
+                created_by INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                subscription_type TEXT DEFAULT 'free',
+                max_uses INTEGER DEFAULT 1,
+                current_uses INTEGER DEFAULT 0,
+                is_active BOOLEAN DEFAULT TRUE,
+                description TEXT,
+                FOREIGN KEY (created_by) REFERENCES users (id)
+            )
+        ''')
+        print("✅ تم إنشاء جدول رموز الدعوة")
+    except Exception as e:
+        print(f"❌ خطأ في إنشاء جدول رموز الدعوة: {e}")
 
 def create_fresh_database(db_path):
     """إنشاء قاعدة بيانات جديدة"""
