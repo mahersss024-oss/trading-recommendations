@@ -782,6 +782,8 @@ def use_invite_code(code: str, user_id: int) -> Tuple[bool, str]:
 def get_invite_codes() -> List[Dict]:
     """جلب جميع رموز الدعوة"""
     try:
+        from datetime import datetime
+        
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
         
@@ -2311,11 +2313,16 @@ def display_admin_users_tab():
             # التأكد من أن المجموع لا يساوي صفر
             if sum(pie_data['العدد']) > 0:
                 # استخدام plotly بدلاً من matplotlib لتجنب مشاكل النوع
-                import plotly.express as px
-                df_pie = pd.DataFrame(pie_data)
-                fig = px.pie(df_pie, values='العدد', names='نوع الاشتراك', 
-                            title='توزيع أنواع الاشتراكات')
-                st.plotly_chart(fig, use_container_width=True)
+                try:
+                    import plotly.express as px
+                    df_pie = pd.DataFrame(pie_data)
+                    fig = px.pie(df_pie, values='العدد', names='نوع الاشتراك', 
+                                title='توزيع أنواع الاشتراكات')
+                    st.plotly_chart(fig, use_container_width=True)
+                except ImportError:
+                    # في حالة عدم توفر plotly، عرض البيانات كجدول
+                    df_pie = pd.DataFrame(pie_data)
+                    st.bar_chart(df_pie.set_index('نوع الاشتراك'))
             else:
                 st.info("لا توجد بيانات كافية لعرض الرسم البياني")
         else:
