@@ -824,7 +824,7 @@ def get_invite_codes() -> List[Dict]:
                 'subscription_type': 'مجاني' if row[6] == 'free' else 'مميز',
                 'max_uses': max_uses,
                 'current_uses': current_uses,
-                'is_active': is_active,
+                'is_active': bool(is_active),
                 'description': row[10] or '',
                 'status': status
             })
@@ -2810,13 +2810,17 @@ def display_invite_codes_tab():
         st.subheader("📋 الرموز الحالية")
         
         # جلب رموز الدعوة
-        invite_codes = get_invite_codes()
+        try:
+            invite_codes = get_invite_codes()
+        except Exception as e:
+            st.error(f"خطأ في جلب رموز الدعوة: {str(e)}")
+            invite_codes = []
         
         if invite_codes:
             # إحصائيات سريعة
-            active_codes = [c for c in invite_codes if c['is_active'] and c['status'] == 'نشط']
-            used_codes = [c for c in invite_codes if c['status'] == 'مستخدم']
-            expired_codes = [c for c in invite_codes if c['status'] == 'منتهي']
+            active_codes = [c for c in invite_codes if bool(c.get('is_active', False)) and c.get('status') == 'نشط']
+            used_codes = [c for c in invite_codes if c.get('status') == 'مستخدم']
+            expired_codes = [c for c in invite_codes if c.get('status') == 'منتهي']
             
             col_stats1, col_stats2, col_stats3 = st.columns(3)
             with col_stats1:
@@ -2847,7 +2851,7 @@ def display_invite_codes_tab():
                             st.write(f"**الوصف:** {code_info['description']}")
                     
                     # خيارات إدارة الرمز
-                    if code_info['is_active'] and code_info['status'] == 'نشط':
+                    if bool(code_info.get('is_active', False)) and code_info.get('status') == 'نشط':
                         col_action1, col_action2 = st.columns(2)
                         with col_action1:
                             if st.button("🗑️ حذف الرمز", key=f"delete_code_{idx}"):
