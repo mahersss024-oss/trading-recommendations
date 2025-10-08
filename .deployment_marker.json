@@ -1,0 +1,9 @@
+{
+  "last_update": "2025-10-08T23:31:51.933308",
+  "version": "v2.1-keyerror-fixed",
+  "fixes": [
+    "Fixed KeyError in invite codes",
+    "Added safe boolean conversion",
+    "Fixed dictionary access patterns"
+  ]
+}
