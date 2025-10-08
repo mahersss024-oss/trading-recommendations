@@ -840,6 +840,22 @@ def deactivate_invite_code(code_id: int) -> Tuple[bool, str]:
     except Exception as e:
         return False, f"خطأ في إلغاء تفعيل رمز الدعوة: {str(e)}"
 
+# دالة حذف رمز الدعوة
+def delete_invite_code(code_id: int) -> bool:
+    """حذف رمز دعوة نهائياً"""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM invite_codes WHERE id = ?", (code_id,))
+        conn.commit()
+        conn.close()
+        
+        return True
+    except Exception as e:
+        print(f"خطأ في حذف رمز الدعوة: {str(e)}")
+        return False
+
 # ================= نهاية دوال رموز الدعوة =================
 
 # دالة تحليل ملف التوصيات
@@ -1627,6 +1643,11 @@ def main_page():
         if "👥 إدارة المستخدمين" in tab_map:
             with tabs[tab_map["👥 إدارة المستخدمين"]]:
                 display_admin_users_tab()
+        
+        # عرض تبويب رموز الدعوة
+        if "🎫 رموز الدعوة" in tab_map:
+            with tabs[tab_map["🎫 رموز الدعوة"]]:
+                display_invite_codes_tab()
         
         # عرض تبويب الإعدادات (متاح للجميع)
         settings_index = tab_map["⚙️ الإعدادات"]
@@ -2692,6 +2713,134 @@ def display_admin_users_tab():
             st.info("📭 لا يوجد مستخدمون مسجلون بعد")
     
     conn.close()
+
+def display_invite_codes_tab():
+    """عرض تبويب إدارة رموز الدعوة للمدير"""
+    st.header("🎫 إدارة رموز الدعوة")
+    
+    user = st.session_state.user
+    
+    # تقسيم الصفحة إلى عمودين
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.subheader("📝 إنشاء رمز دعوة جديد")
+        
+        with st.form("create_invite_code_form"):
+            # نوع الاشتراك
+            subscription_type = st.selectbox(
+                "نوع الاشتراك",
+                ["free", "premium"],
+                format_func=lambda x: "مجاني" if x == "free" else "مميز"
+            )
+            
+            # مدة الصلاحية
+            expiry_days = st.slider(
+                "مدة الصلاحية (بالأيام)",
+                min_value=1,
+                max_value=30,
+                value=7
+            )
+            
+            # عدد مرات الاستخدام
+            max_uses = st.number_input(
+                "عدد مرات الاستخدام المسموح",
+                min_value=1,
+                max_value=100,
+                value=1
+            )
+            
+            # مدة الاشتراك (للمميز فقط) - سيتم إضافتها لاحقاً
+            # subscription_duration = 30
+            # if subscription_type == "premium":
+            #     subscription_duration = st.slider(
+            #         "مدة الاشتراك المميز (بالأيام)",
+            #         min_value=30,
+            #         max_value=365,
+            #         value=30
+            #     )
+            
+            # وصف اختياري
+            description = st.text_area(
+                "وصف الرمز (اختياري)",
+                placeholder="مثال: رمز دعوة لعميل جديد"
+            )
+            
+            submitted = st.form_submit_button("🎫 إنشاء رمز الدعوة", use_container_width=True)
+            
+            if submitted:
+                success, message = generate_invite_code(
+                    created_by=user['id'],
+                    subscription_type=subscription_type,
+                    duration_days=expiry_days,
+                    max_uses=max_uses,
+                    description=description
+                )
+                
+                if success:
+                    st.success(f"✅ {message}")
+                    st.rerun()
+                else:
+                    st.error(f"❌ {message}")
+    
+    with col2:
+        st.subheader("📋 الرموز الحالية")
+        
+        # جلب رموز الدعوة
+        invite_codes = get_invite_codes()
+        
+        if invite_codes:
+            # إحصائيات سريعة
+            active_codes = [c for c in invite_codes if c['is_active'] and c['status'] == 'نشط']
+            used_codes = [c for c in invite_codes if c['status'] == 'مستخدم']
+            expired_codes = [c for c in invite_codes if c['status'] == 'منتهي']
+            
+            col_stats1, col_stats2, col_stats3 = st.columns(3)
+            with col_stats1:
+                st.metric("نشط", len(active_codes))
+            with col_stats2:
+                st.metric("مستخدم", len(used_codes))
+            with col_stats3:
+                st.metric("منتهي", len(expired_codes))
+            
+            st.markdown("---")
+            
+            # عرض الرموز في جدول
+            for idx, code_info in enumerate(invite_codes):
+                with st.expander(f"🎫 {code_info['code']} - {code_info['status']}", expanded=False):
+                    col_info1, col_info2 = st.columns(2)
+                    
+                    with col_info1:
+                        st.write(f"**الرمز:** `{code_info['code']}`")
+                        st.write(f"**النوع:** {code_info['subscription_type']}")
+                        st.write(f"**المنشئ:** {code_info['created_by_username']}")
+                        st.write(f"**تاريخ الإنشاء:** {code_info['created_at']}")
+                    
+                    with col_info2:
+                        st.write(f"**الصلاحية:** {code_info['expires_at']}")
+                        st.write(f"**الاستخدام:** {code_info['current_uses']}/{code_info['max_uses']}")
+                        st.write(f"**الحالة:** {code_info['status']}")
+                        if code_info['description']:
+                            st.write(f"**الوصف:** {code_info['description']}")
+                    
+                    # خيارات إدارة الرمز
+                    if code_info['is_active'] and code_info['status'] == 'نشط':
+                        col_action1, col_action2 = st.columns(2)
+                        with col_action1:
+                            if st.button("🗑️ حذف الرمز", key=f"delete_code_{idx}"):
+                                success = delete_invite_code(code_info['id'])
+                                if success:
+                                    st.success("✅ تم حذف الرمز بنجاح")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ فشل في حذف الرمز")
+                        
+                        with col_action2:
+                            if st.button("📋 نسخ الرمز", key=f"copy_code_{idx}"):
+                                st.info(f"الرمز: {code_info['code']}")
+                                st.balloons()
+        else:
+            st.info("📭 لا توجد رموز دعوة حالياً")
 
 def display_settings_tab():
     """عرض تبويب الإعدادات للمدير"""
