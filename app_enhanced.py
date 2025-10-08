@@ -1486,7 +1486,8 @@ def display_recommendations_tab():
                         'text-align': 'center',
                         'font-size': '14px',
                         'padding': '10px'
-                    }
+                    },
+                    subset=None
                 )
                 
                 st.success("✅ تم توليد بيانات توضيحية بنجاح!")
