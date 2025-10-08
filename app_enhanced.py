@@ -678,9 +678,9 @@ def generate_invite_code(created_by: int, subscription_type: str = 'free',
         # حفظ الرمز في قاعدة البيانات
         cursor.execute('''
             INSERT INTO invite_codes (code, created_by, expires_at, subscription_type, 
-                                     subscription_duration_days, max_uses, description)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (code, created_by, expires_at, subscription_type, duration_days, max_uses, description))
+                                     max_uses, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (code, created_by, expires_at, subscription_type, max_uses, description))
         
         conn.commit()
         conn.close()
@@ -788,7 +788,7 @@ def get_invite_codes() -> List[Dict]:
         cursor.execute('''
             SELECT ic.id, ic.code, ic.created_by, u.username as created_by_name,
                    ic.created_at, ic.expires_at, ic.subscription_type, 
-                   ic.subscription_duration_days, ic.max_uses, ic.current_uses,
+                   ic.max_uses, ic.current_uses,
                    ic.is_active, ic.description
             FROM invite_codes ic
             LEFT JOIN users u ON ic.created_by = u.id
@@ -797,19 +797,34 @@ def get_invite_codes() -> List[Dict]:
         
         codes = []
         for row in cursor.fetchall():
+            # حساب الحالة
+            expires_at = datetime.strptime(row[5], '%Y-%m-%d %H:%M:%S')
+            current_uses = row[8] or 0
+            max_uses = row[7]
+            is_active = row[9]
+            
+            if not is_active:
+                status = 'غير نشط'
+            elif current_uses >= max_uses:
+                status = 'مستخدم'
+            elif expires_at < datetime.now():
+                status = 'منتهي'
+            else:
+                status = 'نشط'
+            
             codes.append({
                 'id': row[0],
                 'code': row[1],
                 'created_by': row[2],
-                'created_by_name': row[3] or 'مستخدم محذوف',
+                'created_by_username': row[3] or 'مستخدم محذوف',
                 'created_at': row[4],
                 'expires_at': row[5],
-                'subscription_type': row[6],
-                'subscription_duration_days': row[7],
-                'max_uses': row[8],
-                'current_uses': row[9],
-                'is_active': row[10],
-                'description': row[11] or ''
+                'subscription_type': 'مجاني' if row[6] == 'free' else 'مميز',
+                'max_uses': max_uses,
+                'current_uses': current_uses,
+                'is_active': is_active,
+                'description': row[10] or '',
+                'status': status
             })
         
         conn.close()
@@ -1608,15 +1623,16 @@ def main_page():
         tab_titles = ["📋 التوصيات"]
         
         # المدير الرئيسي له كل الصلاحيات أو المشرف لديه الصلاحيات المحددة
-        is_super_admin = not user.get('admin_role') or user['admin_role'] == 'none'
+        is_super_admin = not user.get('admin_role') or user['admin_role'] == 'none' or user['admin_role'] is None
+        admin_permissions = user.get('admin_permissions', '').split(',') if user.get('admin_permissions') else []
         
-        if is_super_admin or "reports" in user.get('admin_permissions', []):
+        if is_super_admin or "manage_reports" in admin_permissions:
             tab_titles.append("📁 إدارة التقارير")
             
-        if is_super_admin or "users" in user.get('admin_permissions', []):
+        if is_super_admin or "manage_users" in admin_permissions:
             tab_titles.append("👥 إدارة المستخدمين")
         
-        if is_super_admin:
+        if is_super_admin or "manage_invites" in admin_permissions:
             tab_titles.append("🎫 رموز الدعوة")
             
         tab_titles.append("⚙️ الإعدادات")
