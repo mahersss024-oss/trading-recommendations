@@ -1480,12 +1480,14 @@ def display_recommendations_tab():
                 )
                 
                 # إضافة خصائص التنسيق العامة
-                styled_df = styled_df.set_properties(**{
-                    'border': BORDER_STYLE,
-                    'text-align': 'center',
-                    'font-size': '14px',
-                    'padding': '10px'
-                })
+                styled_df = styled_df.set_properties(
+                    **{
+                        'border': BORDER_STYLE,
+                        'text-align': 'center',
+                        'font-size': '14px',
+                        'padding': '10px'
+                    }
+                )
                 
                 st.success("✅ تم توليد بيانات توضيحية بنجاح!")
                 st.dataframe(styled_df, use_container_width=True)
@@ -1800,36 +1802,37 @@ def display_admin_reports_tab():
                         format_func=lambda x: next((f"#{x} - {r['filename']} ({r['upload_time']})" for r in reports if r['id'] == x), str(x))
                     )
                     
-                    # كود التأكيد لمنع الحذف العرضي
-                    confirmation_key = f"delete_confirmation_{selected_report_id}"
-                    if confirmation_key not in st.session_state:
-                        st.session_state[confirmation_key] = False
+                    if selected_report_id is not None:
+                        # كود التأكيد لمنع الحذف العرضي
+                        confirmation_key = f"delete_confirmation_{selected_report_id}"
+                        if confirmation_key not in st.session_state:
+                            st.session_state[confirmation_key] = False
+                            
+                        if st.button("حذف التقرير المحدد", use_container_width=True, type="primary", key=f"delete_btn_{selected_report_id}"):
+                            st.session_state[confirmation_key] = True
                         
-                    if st.button("حذف التقرير المحدد", use_container_width=True, type="primary", key=f"delete_btn_{selected_report_id}"):
-                        st.session_state[confirmation_key] = True
-                    
-                    # عرض رسالة التأكيد
-                    if st.session_state[confirmation_key]:
-                        st.warning(f"هل أنت متأكد من حذف التقرير #{selected_report_id}؟ لا يمكن التراجع عن هذه العملية!")
-                        
-                        col_confirm, col_cancel = st.columns(2)
-                        
-                        with col_confirm:
-                            if st.button("✅ نعم، احذف التقرير", use_container_width=True, key=f"confirm_delete_{selected_report_id}"):
-                                success = delete_report(selected_report_id)
-                                if success:
-                                    st.success(f"✓ تم حذف التقرير #{selected_report_id} بنجاح")
-                                    # إعادة تعيين حالة التأكيد ومسح الجلسة
+                        # عرض رسالة التأكيد
+                        if st.session_state[confirmation_key]:
+                            st.warning(f"هل أنت متأكد من حذف التقرير #{selected_report_id}؟ لا يمكن التراجع عن هذه العملية!")
+                            
+                            col_confirm, col_cancel = st.columns(2)
+                            
+                            with col_confirm:
+                                if st.button("✅ نعم، احذف التقرير", use_container_width=True, key=f"confirm_delete_{selected_report_id}"):
+                                    success = delete_report(selected_report_id)
+                                    if success:
+                                        st.success(f"✓ تم حذف التقرير #{selected_report_id} بنجاح")
+                                        # إعادة تعيين حالة التأكيد ومسح الجلسة
+                                        st.session_state[confirmation_key] = False
+                                        # إعادة تشغيل الصفحة لتحديث القائمة
+                                        st.rerun()
+                                    else:
+                                        st.error(f"❌ فشل في حذف التقرير #{selected_report_id}")
+                            
+                            with col_cancel:
+                                if st.button("❌ إلغاء", use_container_width=True, key=f"cancel_delete_{selected_report_id}"):
                                     st.session_state[confirmation_key] = False
-                                    # إعادة تشغيل الصفحة لتحديث القائمة
                                     st.rerun()
-                                else:
-                                    st.error(f"❌ فشل في حذف التقرير #{selected_report_id}")
-                        
-                        with col_cancel:
-                            if st.button("❌ إلغاء", use_container_width=True, key=f"cancel_delete_{selected_report_id}"):
-                                st.session_state[confirmation_key] = False
-                                st.rerun()
                 else:
                     st.info("📭 لا توجد تقارير للحذف")
         
