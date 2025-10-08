@@ -12,8 +12,51 @@ from typing import Dict, List, Optional, Tuple
 # Constants
 TYPE_LABEL = 'النوع'
 
-# Constants
-TYPE_LABEL = 'النوع'
+# UI Text Constants
+ADMIN_USERS_TAB = "إدارة المستخدمين"
+ADMIN_REPORTS_TAB = "إدارة التقارير"
+ADMIN_MANAGERS_TAB = "إدارة المشرفين"
+ADMIN_BACKUP_TAB = "النسخ الاحتياطي"
+USERNAME_LABEL = "اسم المستخدم"
+PASSWORD_LABEL = "كلمة المرور"
+EMAIL_LABEL = "البريد الإلكتروني"
+PHONE_LABEL = "رقم الجوال"
+NEW_USERNAME_LABEL = "اسم المستخدم الجديد"
+
+# Table Column Constants
+SYMBOL_COL = "الرمز"
+PRICE_COL = "السعر"
+RECOMMENDATION_COL = "التوصية"
+CONFIDENCE_COL = "الثقة %"
+STOP_LOSS_COL = "وقف الخسارة"
+TARGET_PROFIT_COL = "هدف الربح"
+RISK_REWARD_COL = "نسبة ر/م"
+TREND_COL = "الاتجاه"
+
+# Recommendation Constants
+BUY_RECOMMENDATION = "🟢 شراء"
+SELL_RECOMMENDATION = "🔴 بيع"
+
+# Database Constants
+COUNT_COL = 'العدد'
+SUBSCRIPTION_TYPE_COL = 'نوع الاشتراك'
+SUBSCRIPTION_END_COL = 'تاريخ انتهاء الاشتراك'
+
+# Message Constants
+FILL_ALL_FIELDS_MSG = "⚠️ يرجى ملء جميع الحقول المطلوبة"
+CHOOSE_USER_MSG = "اختر مستخدم..."
+NO_USERS_MSG = "📭 لا يوجد مستخدمون مسجلون بعد"
+CONFIRM_DELETE_MSG = "اكتب 'تأكيد' للمتابعة:"
+CONFIRM_TEXT = "تأكيد"
+
+# SQL Queries Constants
+DELETE_USER_SQL = "DELETE FROM users WHERE id = ?"
+UPDATE_PASSWORD_SQL = "UPDATE users SET password_hash = ? WHERE id = ?"
+CHECK_USERNAME_SQL = "SELECT id FROM users WHERE username = ? AND id != ?"
+UPDATE_USERNAME_SQL = "UPDATE users SET username = ? WHERE id = ?"
+
+# Styling Constants
+BORDER_STYLE = '1px solid #e5e7eb'
 
 # استيراد التحسينات
 try:
@@ -30,32 +73,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# رسالة تنبيه - التطبيق قيد التطوير
-st.markdown("""
-<div style='
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 1rem 2rem;
-    border-radius: 10px;
-    margin-bottom: 2rem;
-    border-left: 5px solid #ff6b6b;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-'>
-    <div style='display: flex; align-items: center; gap: 1rem;'>
-        <span style='font-size: 2rem;'>🚧</span>
-        <div>
-            <h3 style='color: white; margin: 0; font-size: 1.2rem; font-weight: bold;'>
-                تنبيه: التطبيق قيد التطوير والتحسين
-            </h3>
-            <p style='color: #f8f9fa; margin: 0.5rem 0 0 0; font-size: 1rem; line-height: 1.5;'>
-                🔄 نحن نعمل باستمرار على تحسين وتطوير النظام لتقديم أفضل خدمة لك<br>
-                📧 في حالة مواجهة أي مشاكل، يرجى التواصل مع فريق الدعم الفني<br>
-                🎯 نشكرك على صبرك وتفهمك أثناء عملية التطوير
-            </p>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 # تهيئة متغيرات الجلسة
 if 'show_admin_form' not in st.session_state:
@@ -833,6 +850,9 @@ def save_report(filename: str, content: str, parsed_data: Dict) -> int:
         ))
 
         report_id = cursor.lastrowid
+        if report_id is None:
+            raise Exception("فشل في الحصول على معرف التقرير")
+        
         print(f"تم إنشاء التقرير برقم: {report_id}")
         
         # حفظ الصفقات
@@ -949,27 +969,6 @@ def login_page():
 
         # شرح احترافي للمميزات
         st.markdown("""
-        <div style='
-            background: linear-gradient(135deg, #ffecd1 0%, #fcb69f 100%);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 2px solid #f97316;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
-        '>
-            <div style='color: #c2410c; font-weight: bold; font-size: 1.1rem; margin-bottom: 8px;'>
-                🚧 إشعار مهم
-            </div>
-            <div style='color: #ea580c; font-size: 1rem; line-height: 1.5;'>
-                النظام قيد التطوير والتحسين المستمر<br>
-                قد تواجه بعض التحديثات أثناء الاستخدام<br>
-                نعتذر عن أي إزعاج مؤقت ونشكر صبركم
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
         <div style='background: linear-gradient(90deg, #f8fafc 60%, #e3eafc 100%); border-radius:16px; padding:30px 28px 25px 28px; margin-bottom:30px; border:2px solid #c7d5f4; box-shadow:0 10px 25px rgba(31,119,180,0.12);'>
             <h3 style='color:#0f2350; margin-bottom:18px; font-size:1.8rem; font-weight:800; text-align:right; direction:rtl;'>نظام التوصيات المالية</h3>
             <ul style='font-size:1.35rem; color:#1e293b; line-height:2.5; padding-right:25px; text-align:right; direction:rtl; font-weight:500;'>
@@ -1056,7 +1055,7 @@ def login_page():
                 
                 st.markdown("<div style='height:25px'></div>", unsafe_allow_html=True)
                 
-                col_btn1, col_btn2 = st.columns([3, 1])
+                col_btn1, _ = st.columns([3, 1])
                 with col_btn1:
                     submitted = st.form_submit_button("تسجيل الدخول", use_container_width=True)
                 if submitted:
@@ -1231,26 +1230,6 @@ def main_page():
     
     # شريط جانبي محسن
     with st.sidebar:
-        # رسالة التطوير في الشريط الجانبي
-        st.markdown("""
-        <div style='
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            border: 2px solid #f472b6;
-            text-align: center;
-        '>
-            <div style='color: #831843; font-weight: bold; margin-bottom: 0.5rem;'>
-                🚧 تحت التطوير
-            </div>
-            <div style='color: #be185d; font-size: 0.9rem; line-height: 1.4;'>
-                النظام قيد التحسين المستمر<br>
-                نعتذر عن أي إزعاج مؤقت
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
         # بطاقة المستخدم
         badge_color = "#10b981" if user['subscription_type'] == 'premium' else "#f59e0b"
         badge_text = "مميز" if user['subscription_type'] == 'premium' else "مجاني"
@@ -1301,7 +1280,7 @@ def main_page():
         
         # زر تسجيل الخروج محسن
         with st.container():
-            col1, col2, col3 = st.columns([1, 10, 1])
+            _, col2, _ = st.columns([1, 10, 1])
             with col2:
                 if st.button("🚪 تسجيل الخروج", use_container_width=True, 
                           key="styled_logout", 
@@ -1498,8 +1477,11 @@ def display_recommendations_tab():
                 styled_df = trades_df.style.map(
                     lambda val: 'background-color: rgba(16, 185, 129, 0.2); color: #047857; font-weight: bold; font-size: 1.05rem; padding: 6px 8px; border-radius: 4px;' if 'شراء' in str(val) else 'background-color: rgba(239, 68, 68, 0.2); color: #b91c1c; font-weight: bold; font-size: 1.05rem; padding: 6px 8px; border-radius: 4px;' if 'بيع' in str(val) else '',
                     subset=['التوصية']
-                ).set_properties(**{
-                    'border': '1px solid #e5e7eb',
+                )
+                
+                # إضافة خصائص التنسيق العامة
+                styled_df = styled_df.set_properties(**{
+                    'border': BORDER_STYLE,
                     'text-align': 'center',
                     'font-size': '14px',
                     'padding': '10px'
@@ -1811,43 +1793,45 @@ def display_admin_reports_tab():
         # قسم حذف تقرير واحد
         with col_single:
             with st.expander("🗑️ حذف تقرير محدد", expanded=True):
-                selected_report_id = st.selectbox(
-                    "اختر التقرير المراد حذفه",
-                    options=[r['id'] for r in reports],
-                    format_func=lambda x: next((f"#{x} - {r['filename']} ({r['upload_time']})" for r in reports if r['id'] == x), str(x))
-                )
-                
-                # كود التأكيد لمنع الحذف العرضي
-                confirmation_key = f"delete_confirmation_{selected_report_id}"
-                if confirmation_key not in st.session_state:
-                    st.session_state[confirmation_key] = False
+                if reports:
+                    selected_report_id = st.selectbox(
+                        "اختر التقرير المراد حذفه",
+                        options=[r['id'] for r in reports],
+                        format_func=lambda x: next((f"#{x} - {r['filename']} ({r['upload_time']})" for r in reports if r['id'] == x), str(x))
+                    )
                     
-                if st.button("حذف التقرير المحدد", use_container_width=True, type="primary", key=f"delete_btn_{selected_report_id}"):
-                    st.session_state[confirmation_key] = True
-                
-                # عرض رسالة التأكيد
-                if st.session_state[confirmation_key]:
-                    st.warning(f"هل أنت متأكد من حذف التقرير #{selected_report_id}؟ لا يمكن التراجع عن هذه العملية!")
+                    # كود التأكيد لمنع الحذف العرضي
+                    confirmation_key = f"delete_confirmation_{selected_report_id}"
+                    if confirmation_key not in st.session_state:
+                        st.session_state[confirmation_key] = False
+                        
+                    if st.button("حذف التقرير المحدد", use_container_width=True, type="primary", key=f"delete_btn_{selected_report_id}"):
+                        st.session_state[confirmation_key] = True
                     
-                    col_confirm, col_cancel = st.columns(2)
-                    
-                    with col_confirm:
-                        if st.button("✅ نعم، احذف التقرير", use_container_width=True, key=f"confirm_delete_{selected_report_id}"):
-                            success = delete_report(selected_report_id)
-                            if success:
-                                st.success(f"✓ تم حذف التقرير #{selected_report_id} بنجاح")
-                                # إعادة تعيين حالة التأكيد ومسح الجلسة
+                    # عرض رسالة التأكيد
+                    if st.session_state[confirmation_key]:
+                        st.warning(f"هل أنت متأكد من حذف التقرير #{selected_report_id}؟ لا يمكن التراجع عن هذه العملية!")
+                        
+                        col_confirm, col_cancel = st.columns(2)
+                        
+                        with col_confirm:
+                            if st.button("✅ نعم، احذف التقرير", use_container_width=True, key=f"confirm_delete_{selected_report_id}"):
+                                success = delete_report(selected_report_id)
+                                if success:
+                                    st.success(f"✓ تم حذف التقرير #{selected_report_id} بنجاح")
+                                    # إعادة تعيين حالة التأكيد ومسح الجلسة
+                                    st.session_state[confirmation_key] = False
+                                    # إعادة تشغيل الصفحة لتحديث القائمة
+                                    st.rerun()
+                                else:
+                                    st.error(f"❌ فشل في حذف التقرير #{selected_report_id}")
+                        
+                        with col_cancel:
+                            if st.button("❌ إلغاء", use_container_width=True, key=f"cancel_delete_{selected_report_id}"):
                                 st.session_state[confirmation_key] = False
-                                # إعادة تشغيل الصفحة لتحديث القائمة
                                 st.rerun()
-                            else:
-                                st.error("❌ حدث خطأ أثناء حذف التقرير")
-                    
-                    with col_cancel:
-                        if st.button("❌ إلغاء", use_container_width=True, key=f"cancel_delete_{selected_report_id}"):
-                            # إعادة تعيين حالة التأكيد
-                            st.session_state[confirmation_key] = False
-                            st.rerun()
+                else:
+                    st.info("📭 لا توجد تقارير للحذف")
         
         # قسم حذف جميع التقارير
         with col_all:
@@ -1971,8 +1955,12 @@ def display_admin_users_tab():
             
             # التأكد من أن المجموع لا يساوي صفر
             if sum(pie_data['العدد']) > 0:
-                fig = pd.DataFrame(pie_data).set_index('نوع الاشتراك').plot.pie(y='العدد', figsize=(8, 8), autopct='%1.1f%%')
-                st.pyplot(fig.figure)
+                # استخدام plotly بدلاً من matplotlib لتجنب مشاكل النوع
+                import plotly.express as px
+                df_pie = pd.DataFrame(pie_data)
+                fig = px.pie(df_pie, values='العدد', names='نوع الاشتراك', 
+                            title='توزيع أنواع الاشتراكات')
+                st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("لا توجد بيانات كافية لعرض الرسم البياني")
         else:
