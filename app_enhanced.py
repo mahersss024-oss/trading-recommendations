@@ -31,6 +31,32 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# رسالة تنبيه - التطبيق قيد التطوير
+st.markdown("""
+<div style='
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    border-left: 5px solid #ff6b6b;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+'>
+    <div style='display: flex; align-items: center; gap: 1rem;'>
+        <span style='font-size: 2rem;'>🚧</span>
+        <div>
+            <h3 style='color: white; margin: 0; font-size: 1.2rem; font-weight: bold;'>
+                تنبيه: التطبيق قيد التطوير والتحسين
+            </h3>
+            <p style='color: #f8f9fa; margin: 0.5rem 0 0 0; font-size: 1rem; line-height: 1.5;'>
+                🔄 نحن نعمل باستمرار على تحسين وتطوير النظام لتقديم أفضل خدمة لك<br>
+                📧 في حالة مواجهة أي مشاكل، يرجى التواصل مع فريق الدعم الفني<br>
+                🎯 نشكرك على صبرك وتفهمك أثناء عملية التطوير
+            </p>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # تهيئة متغيرات الجلسة
 if 'show_admin_form' not in st.session_state:
     st.session_state.show_admin_form = False
@@ -923,6 +949,27 @@ def login_page():
 
         # شرح احترافي للمميزات
         st.markdown("""
+        <div style='
+            background: linear-gradient(135deg, #ffecd1 0%, #fcb69f 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #f97316;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
+        '>
+            <div style='color: #c2410c; font-weight: bold; font-size: 1.1rem; margin-bottom: 8px;'>
+                🚧 إشعار مهم
+            </div>
+            <div style='color: #ea580c; font-size: 1rem; line-height: 1.5;'>
+                النظام قيد التطوير والتحسين المستمر<br>
+                قد تواجه بعض التحديثات أثناء الاستخدام<br>
+                نعتذر عن أي إزعاج مؤقت ونشكر صبركم
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
         <div style='background: linear-gradient(90deg, #f8fafc 60%, #e3eafc 100%); border-radius:16px; padding:30px 28px 25px 28px; margin-bottom:30px; border:2px solid #c7d5f4; box-shadow:0 10px 25px rgba(31,119,180,0.12);'>
             <h3 style='color:#0f2350; margin-bottom:18px; font-size:1.8rem; font-weight:800; text-align:right; direction:rtl;'>نظام التوصيات المالية</h3>
             <ul style='font-size:1.35rem; color:#1e293b; line-height:2.5; padding-right:25px; text-align:right; direction:rtl; font-weight:500;'>
@@ -1184,6 +1231,26 @@ def main_page():
     
     # شريط جانبي محسن
     with st.sidebar:
+        # رسالة التطوير في الشريط الجانبي
+        st.markdown("""
+        <div style='
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border: 2px solid #f472b6;
+            text-align: center;
+        '>
+            <div style='color: #831843; font-weight: bold; margin-bottom: 0.5rem;'>
+                🚧 تحت التطوير
+            </div>
+            <div style='color: #be185d; font-size: 0.9rem; line-height: 1.4;'>
+                النظام قيد التحسين المستمر<br>
+                نعتذر عن أي إزعاج مؤقت
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
         # بطاقة المستخدم
         badge_color = "#10b981" if user['subscription_type'] == 'premium' else "#f59e0b"
         badge_text = "مميز" if user['subscription_type'] == 'premium' else "مجاني"
