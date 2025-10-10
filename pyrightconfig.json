@@ -1,0 +1,37 @@
+{
+    "include": [
+        "app_enhanced.py",
+        "theme_system.py",
+        "enhancements.py",
+        "utils.py",
+        "control_panel.py"
+    ],
+    "exclude": [
+        "**/*backup*.py",
+        "**/*fixed*.py",
+        "**/my bot/**",
+        "**/__pycache__/**"
+    ],
+    "ignore": [
+        "app_enhanced_backup.py",
+        "app_enhanced_backup_20251008_232946.py",
+        "app_enhanced_fixed.py"
+    ],
+    "reportMissingImports": false,
+    "reportMissingModuleSource": false,
+    "reportPossiblyUnboundVariable": false,
+    "reportUnboundVariable": false,
+    "reportOptionalMemberAccess": false,
+    "reportGeneralTypeIssues": false,
+    "reportUnknownMemberType": false,
+    "reportUnknownArgumentType": false,
+    "reportUnknownVariableType": false,
+    "reportUntypedFunctionDecorator": false,
+    "strictListInference": false,
+    "strictDictionaryInference": false,
+    "strictSetInference": false,
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "venvPath": ".",
+    "venv": ".venv"
+}
