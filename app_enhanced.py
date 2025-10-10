@@ -88,6 +88,10 @@ st.set_page_config(
 if 'show_admin_form' not in st.session_state:
     st.session_state.show_admin_form = False
 
+# تهيئة متغير الثيم
+if 'theme_mode' not in st.session_state:
+    st.session_state.theme_mode = 'light'  # افتراضي لايت ثيم
+
 # ثوابت التطبيق
 # تحديد مسار قاعدة البيانات حسب البيئة
 if os.getenv('STREAMLIT_SHARING') or os.getenv('HEROKU') or os.getenv('RAILWAY_ENVIRONMENT'):
@@ -97,7 +101,421 @@ else:
     # في بيئة التطوير المحلية
     DB_NAME = 'trading_recommendations.db'
 
-# CSS مخصص لتحسين المظهر
+def apply_custom_css():
+    """تطبيق CSS مخصص حسب الثيم المختار"""
+    
+    if st.session_state.theme_mode == 'light':
+        # Light Theme CSS
+        css_content = """
+        <style>
+        /* تنسيق عام للتطبيق وتحميل خطوط عربية - لايت ثيم */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;800;900&display=swap');
+
+        .stApp {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            font-family: 'Tajawal', 'Cairo', 'Segoe UI', sans-serif !important;
+        }
+
+        /* تحسين تباين النصوص ودعم اللغة العربية - لايت ثيم */
+        .stMarkdown, .stText {
+            color: #1e293b !important;
+            font-size: 1.25rem !important;
+            direction: rtl !important;
+            text-align: right !important;
+            line-height: 1.9 !important;
+            font-weight: 600 !important;
+            text-rendering: optimizeLegibility !important;
+            -webkit-font-smoothing: antialiased !important;
+        }
+
+        /* تحسين كافة النصوص في التطبيق */
+        body, button, input, textarea, select, label, div {
+            font-family: 'Tajawal', 'Cairo', 'Segoe UI', sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+
+        /* تحسين وضوح كل العناصر */
+        .stButton button, .stSelectbox, .stTextInput input, .stTextArea textarea {
+            font-size: 1.15rem !important;
+            font-weight: 600 !important;
+            direction: rtl !important;
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        /* تنسيق العنوان الرئيسي - لايت ثيم */
+        .main-header {
+            font-size: 4rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem 0;
+            color: #1e40af;
+            text-shadow: 0 2px 8px rgba(30, 64, 175, 0.1);
+            letter-spacing: 0px;
+            direction: rtl;
+            line-height: 1.6;
+            font-family: 'Tajawal', 'Cairo', 'Segoe UI', sans-serif !important;
+        }
+
+        /* تنسيق البطاقات - لايت ثيم */
+        .metric-card {
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        /* تنسيق الشريط الجانبي - لايت ثيم */
+        div[data-testid="stSidebarContent"] {
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05);
+            padding: 1.8rem 1.5rem;
+        }
+
+        /* تنسيق الأزرار - لايت ثيم */
+        button[kind="primary"] {
+            background: linear-gradient(120deg, #3b82f6, #1d4ed8) !important;
+            border: none !important;
+            padding: 0.6rem 1.5rem !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            color: #ffffff !important;
+            transition: all 0.2s ease !important;
+        }
+
+        button[kind="primary"]:hover {
+            background: linear-gradient(120deg, #2563eb, #1e40af) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3) !important;
+        }
+
+        /* تنسيق التبويبات - لايت ثيم */
+        div[data-testid="stTabsCtrlWrapper"] button[role="tab"] {
+            font-weight: 700;
+            font-size: 1.25rem;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 24px !important;
+            color: #475569 !important;
+            background-color: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-bottom: none !important;
+            transition: all 0.3s ease;
+        }
+
+        div[data-testid="stTabsCtrlWrapper"] button[role="tab"]:hover {
+            background-color: #f1f5f9 !important;
+            color: #3b82f6 !important;
+        }
+
+        div[data-testid="stTabsCtrlWrapper"] button[role="tab"][aria-selected="true"] {
+            background-color: #ffffff !important;
+            color: #1e40af !important;
+            border-color: #3b82f6 !important;
+            font-weight: 800;
+            box-shadow: 0 -2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        /* تنسيق الرسائل - لايت ثيم */
+        .success-message {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #166534;
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #dc2626;
+        }
+
+        /* تنسيق الجداول - لايت ثيم */
+        .stDataFrame {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+        }
+
+        .stDataFrame table {
+            background-color: #ffffff !important;
+        }
+
+        .stDataFrame th {
+            background-color: #f8fafc !important;
+            color: #374151 !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+
+        .stDataFrame td {
+            color: #1f2937 !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+        }
+
+        /* تنسيق النماذج - لايت ثيم */
+        .stForm {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 1.5rem !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        /* تحسين الإدخالات - لايت ثيم */
+        .stTextInput input, .stTextArea textarea, .stSelectbox select {
+            background-color: #ffffff !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 6px !important;
+            color: #374151 !important;
+        }
+
+        .stTextInput input:focus, .stTextArea textarea:focus, .stSelectbox select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
+        </style>
+        """
+    else:
+        # Dark Theme CSS
+        css_content = """
+        <style>
+        /* تنسيق عام للتطبيق وتحميل خطوط عربية - دارك ثيم */
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;800;900&display=swap');
+
+        .stApp {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            font-family: 'Tajawal', 'Cairo', 'Segoe UI', sans-serif !important;
+        }
+
+        /* تحسين تباين النصوص ودعم اللغة العربية - دارك ثيم */
+        .stMarkdown, .stText {
+            color: #f1f5f9 !important;
+            font-size: 1.25rem !important;
+            direction: rtl !important;
+            text-align: right !important;
+            line-height: 1.9 !important;
+            font-weight: 600 !important;
+            text-rendering: optimizeLegibility !important;
+            -webkit-font-smoothing: antialiased !important;
+        }
+
+        /* تحسين كافة النصوص في التطبيق */
+        body, button, input, textarea, select, label, div {
+            font-family: 'Tajawal', 'Cairo', 'Segoe UI', sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+
+        /* تحسين وضوح كل العناصر */
+        .stButton button, .stSelectbox, .stTextInput input, .stTextArea textarea {
+            font-size: 1.15rem !important;
+            font-weight: 600 !important;
+            direction: rtl !important;
+            background-color: #374151 !important;
+            color: #f9fafb !important;
+            border: 1px solid #4b5563 !important;
+        }
+
+        /* تنسيق العنوان الرئيسي - دارك ثيم */
+        .main-header {
+            font-size: 4rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem 0;
+            color: #60a5fa;
+            text-shadow: 0 2px 8px rgba(96, 165, 250, 0.3);
+            letter-spacing: 0px;
+            direction: rtl;
+            line-height: 1.6;
+            font-family: 'Tajawal', 'Cairo', 'Segoe UI', sans-serif !important;
+        }
+
+        /* تنسيق البطاقات - دارك ثيم */
+        .metric-card {
+            background: #1f2937;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #374151;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border-color: #60a5fa;
+        }
+
+        /* تنسيق الشريط الجانبي - دارك ثيم */
+        div[data-testid="stSidebarContent"] {
+            background-color: #1f2937;
+            border-right: 1px solid #374151;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+            padding: 1.8rem 1.5rem;
+        }
+
+        /* تنسيق الأزرار - دارك ثيم */
+        button[kind="primary"] {
+            background: linear-gradient(120deg, #3b82f6, #1d4ed8) !important;
+            border: none !important;
+            padding: 0.6rem 1.5rem !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            color: #ffffff !important;
+            transition: all 0.2s ease !important;
+        }
+
+        button[kind="primary"]:hover {
+            background: linear-gradient(120deg, #2563eb, #1e40af) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4) !important;
+        }
+
+        /* تنسيق التبويبات - دارك ثيم */
+        div[data-testid="stTabsCtrlWrapper"] button[role="tab"] {
+            font-weight: 700;
+            font-size: 1.25rem;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 24px !important;
+            color: #9ca3af !important;
+            background-color: #374151 !important;
+            border: 1px solid #4b5563 !important;
+            border-bottom: none !important;
+            transition: all 0.3s ease;
+        }
+
+        div[data-testid="stTabsCtrlWrapper"] button[role="tab"]:hover {
+            background-color: #4b5563 !important;
+            color: #60a5fa !important;
+        }
+
+        div[data-testid="stTabsCtrlWrapper"] button[role="tab"][aria-selected="true"] {
+            background-color: #1f2937 !important;
+            color: #60a5fa !important;
+            border-color: #3b82f6 !important;
+            font-weight: 800;
+            box-shadow: 0 -2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        /* تنسيق الرسائل - دارك ثيم */
+        .success-message {
+            background-color: #064e3b;
+            border: 1px solid #047857;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #10b981;
+        }
+
+        .error-message {
+            background-color: #7f1d1d;
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #ef4444;
+        }
+
+        /* تنسيق الجداول - دارك ثيم */
+        .stDataFrame {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+            border-radius: 8px !important;
+        }
+
+        .stDataFrame table {
+            background-color: #1f2937 !important;
+        }
+
+        .stDataFrame th {
+            background-color: #374151 !important;
+            color: #f9fafb !important;
+            border-bottom: 1px solid #4b5563 !important;
+        }
+
+        .stDataFrame td {
+            color: #e5e7eb !important;
+            border-bottom: 1px solid #374151 !important;
+        }
+
+        /* تنسيق النماذج - دارك ثيم */
+        .stForm {
+            background-color: #1f2937 !important;
+            border: 1px solid #374151 !important;
+            border-radius: 12px !important;
+            padding: 1.5rem !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* تحسين الإدخالات - دارك ثيم */
+        .stTextInput input, .stTextArea textarea, .stSelectbox select {
+            background-color: #374151 !important;
+            border: 1px solid #4b5563 !important;
+            border-radius: 6px !important;
+            color: #f9fafb !important;
+        }
+
+        .stTextInput input:focus, .stTextArea textarea:focus, .stSelectbox select:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+        }
+        </style>
+        """
+    
+    st.markdown(css_content, unsafe_allow_html=True)
+
+# تطبيق CSS المخصص
+apply_custom_css()
+
+def add_theme_switcher():
+    """إضافة أداة تبديل الثيم إلى الشريط الجانبي"""
+    
+    st.markdown("---")
+    st.subheader("🎨 إعدادات المظهر")
+    
+    # زر تبديل الثيم
+    current_theme = st.session_state.get('theme_mode', 'light')
+    
+    theme_options = {
+        'light': '☀️ لايت ثيم',
+        'dark': '🌙 دارك ثيم'
+    }
+    
+    selected_theme = st.radio(
+        "اختر المظهر:",
+        options=['light', 'dark'],
+        format_func=lambda x: theme_options[x],
+        index=0 if current_theme == 'light' else 1,
+        key="theme_selector"
+    )
+    
+    # تحديث الثيم إذا تغير
+    if selected_theme != current_theme:
+        st.session_state.theme_mode = selected_theme
+        st.rerun()
+    
+    # معلومات إضافية
+    if current_theme == 'light':
+        st.success("🌞 الوضع الحالي: لايت ثيم")
+    else:
+        st.info("🌙 الوضع الحالي: دارك ثيم")
 st.markdown("""
 <style>
 /* تنسيق عام للتطبيق وتحميل خطوط عربية */
@@ -1575,6 +1993,9 @@ def main_page():
             </div>
         </div>
         """, unsafe_allow_html=True)
+        
+        # إضافة نظام تبديل الثيم
+        add_theme_switcher()
         
         # زر تسجيل الخروج محسن
         with st.container():
