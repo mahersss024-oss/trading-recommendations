@@ -2239,6 +2239,31 @@ def display_recommendations_tab():
                 
                 st.success("✅ تم توليد بيانات توضيحية بنجاح!")
                 st.dataframe(styled_df, use_container_width=True)
+                
+                # إضافة تنبيه حول مستوى الثقة للبيانات التوضيحية
+                st.markdown("""
+                <div style="background: linear-gradient(120deg, #fef3c7, #fcd34d); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="font-size: 2rem; margin-right: 15px;">⚠️</div>
+                        <h4 style="margin: 0; color: #92400e; font-weight: 700; font-size: 1.3rem;">تنبيه مهم حول مستوى الثقة</h4>
+                    </div>
+                    <div style="color: #92400e; font-size: 1.1rem; line-height: 1.8; margin-bottom: 15px;">
+                        <strong>📊 التوصيات ذات الثقة فوق 70% مناسبة للتداول</strong>
+                    </div>
+                    <div style="background: rgba(146, 64, 14, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="color: #92400e; font-size: 1rem; line-height: 1.7;">
+                            🎯 <strong>كلما ارتفعت نسبة الثقة، كلما زادت فرصة نجاح الصفقة</strong><br>
+                            📈 <strong>70% - 80%:</strong> فرصة جيدة للنجاح<br>
+                            🔥 <strong>80% - 90%:</strong> فرصة عالية للنجاح<br>
+                            ⭐ <strong>فوق 90%:</strong> فرصة ممتازة للنجاح
+                        </div>
+                    </div>
+                    <div style="color: #dc2626; font-size: 0.95rem; font-weight: 600; text-align: center; background: rgba(220, 38, 38, 0.1); padding: 10px; border-radius: 6px;">
+                        ⚠️ تذكر: التداول ينطوي على مخاطر. يرجى إدارة المخاطر بعناية واستخدام وقف الخسارة
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 return
             
         if trades_exist:
@@ -2457,6 +2482,30 @@ def display_recommendations_tab():
             
             # عرض الجدول بغض النظر
             st.dataframe(styled_df, use_container_width=True)
+            
+            # إضافة تنبيه حول مستوى الثقة
+            st.markdown("""
+            <div style="background: linear-gradient(120deg, #fef3c7, #fcd34d); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);">
+                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                    <div style="font-size: 2rem; margin-right: 15px;">⚠️</div>
+                    <h4 style="margin: 0; color: #92400e; font-weight: 700; font-size: 1.3rem;">تنبيه مهم حول مستوى الثقة</h4>
+                </div>
+                <div style="color: #92400e; font-size: 1.1rem; line-height: 1.8; margin-bottom: 15px;">
+                    <strong>📊 التوصيات ذات الثقة فوق 70% مناسبة للتداول</strong>
+                </div>
+                <div style="background: rgba(146, 64, 14, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <div style="color: #92400e; font-size: 1rem; line-height: 1.7;">
+                        🎯 <strong>كلما ارتفعت نسبة الثقة، كلما زادت فرصة نجاح الصفقة</strong><br>
+                        📈 <strong>70% - 80%:</strong> فرصة جيدة للنجاح<br>
+                        🔥 <strong>80% - 90%:</strong> فرصة عالية للنجاح<br>
+                        ⭐ <strong>فوق 90%:</strong> فرصة ممتازة للنجاح
+                    </div>
+                </div>
+                <div style="color: #dc2626; font-size: 0.95rem; font-weight: 600; text-align: center; background: rgba(220, 38, 38, 0.1); padding: 10px; border-radius: 6px;">
+                    ⚠️ تذكر: التداول ينطوي على مخاطر. يرجى إدارة المخاطر بعناية واستخدام وقف الخسارة
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             
             # خيار التصدير
             csv = trades_df.to_csv(index=False, encoding='utf-8-sig')
